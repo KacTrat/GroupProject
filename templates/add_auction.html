@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Auction</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px auto;
+            max-width: 600px;
+            background-color: #f4f1ea; 
+            padding: 20px;
+            color: #2e2e2e; 
+            text-align: center; 
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        label, input {
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        label {
+            color: #4b5320;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 1em;
+        }
+
+        input:focus {
+            border-color: #4b5320; 
+            outline: none;
+            box-shadow: 0 0 5px #4b5320;
+        }
+
+        #message {
+            margin-top: 20px;
+            color: #8b0000; 
+        }
+
+        .success {
+            color: #4CAF50;
+        }
+
+        button {
+            padding: 15px;
+            background-color: #4b5320; 
+            color: #f9f6f1; 
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3e4720; 
+        }
+
+        #logo {
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <img id="logo" src="{% static 'logo.png' %}" alt="Logo" width="150" height="150"> 
+<h2>Add Auction</h2>
+<div id="message"></div>
+<form id="auctionForm">
+    <label for="book_name">Book/Auction Name:</label>
+    <input type="text" id="book_name" name="book_name" required>
+
+    <label for="author_name">Author Name:</label>
+    <input type="text" id="author_name" name="author_name" required>
+
+    <label for="date_start">Start Date:</label>
+    <input type="datetime-local" id="date_start" name="date_start" required>
+
+    <label for="date_end">End Date:</label>
+    <input type="datetime-local" id="date_end" name="date_end" required>
+
+    <label for="price_start">Starting Price:</label>
+    <input type="number" id="price_start" name="price_start" step="0.01" required>
+
+    <button type="submit">Add Auction</button>
+</form>
+<script>
+    document.getElementById('auctionForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const bookName = document.getElementById('book_name').value;
+        const authorName = document.getElementById('author_name').value;
+        const dateStart = document.getElementById('date_start').value;
+        const dateEnd = document.getElementById('date_end').value;
+        const priceStart = document.getElementById('price_start').value;
+
+        const tags = bookName.split(' ');
+
+        const data = {
+            book_name: bookName,
+            author_name: authorName,
+            date_start: dateStart,
+            date_end: dateEnd,
+            price_start: priceStart
+        };
+
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                throw new Error('User is not authenticated. Please log in again.');
+            }
+
+            console.log('Sending data:', data);
+
+            const response = await fetch('http://127.0.0.1:8000/api/auctions/add/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data)
+            });
+
+            const messageDiv = document.getElementById('message');
+
+            if (response.ok) {
+                messageDiv.innerText = 'Auction added successfully!';
+                messageDiv.classList.add('success');
+            } else {
+                const result = await response.json();
+                console.log('API response:', result);
+                if (response.status === 401) {
+                    messageDiv.innerText = 'Unauthorized: Please log in again.';
+                    localStorage.removeItem('access_token');
+                    setTimeout(() => {
+                        window.location.href = '/login/';
+                    }, 2000);
+                } else {
+                    messageDiv.innerText = result.error || 'An error occurred while adding the auction.';
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('message').innerText = 'An error occurred. Please try again later.';
+        }
+    });
+</script>
+</body>
+</html>

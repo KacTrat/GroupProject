@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px auto;
+            max-width: 400px;
+            background-color: #f4f1ea; 
+            padding: 20px;
+            color: #2e2e2e; 
+            text-align: center; 
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        label, input {
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        label {
+            color: #4b5320;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 1em;
+        }
+
+        input:focus {
+            border-color: #4b5320;
+            outline: none;
+            box-shadow: 0 0 5px #4b5320;
+        }
+
+        #message {
+            margin-top: 20px;
+            color: #8b0000; 
+        }
+
+        .success {
+            color: #4CAF50; 
+        }
+
+        button {
+            padding: 15px;
+            background-color: #4b5320; 
+            color: #f9f6f1; 
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #3e4720; 
+        }
+
+        #logo {
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .register-button {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #1f3a93;
+            color: #f9f6f1;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .register-button:hover {
+            background-color: #163270;
+        }
+    </style>
+</head>
+<body>
+<img id="logo" src="{% static 'logo.png' %}" alt="Logo" width="150" height="150"> 
+<h2>Login</h2>
+<form id="loginForm">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+
+    <button type="submit">Login</button>
+</form>
+
+<div id="message"></div>
+
+<a href="/register-page/" class="register-button">Don't have an account? Register here</a>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        const data = {
+            username: username,
+            password: password
+        };
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/login/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                document.getElementById('message').innerText = "Login successful!";
+                document.getElementById('message').classList.add('success');
+
+                localStorage.setItem('access_token', result.access);
+                localStorage.setItem('refresh_token', result.refresh);
+                localStorage.setItem('username', username);
+
+                window.location.href = '/dashboard/';
+            } else {
+                let errorMessage = result.detail || "Invalid data.";
+                document.getElementById('message').innerText = errorMessage;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('message').innerText = "An error occurred.";
+        }
+    });
+</script>
+</body>
+</html>

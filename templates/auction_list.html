@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auction List</title>
+</head>
+<body>
+    <h1>Auction List</h1>
+    <ul>
+        {% for auction in auctions %}
+            <li>
+                <h2>{{ auction.book.title }}</h2>
+                <p>Owner: {{ auction.owner }}</p>
+                <p>Tags: 
+                    {% for tag in auction.tags.all %}
+                        {{ tag.name }}
+                    {% endfor %}
+                </p>
+                <p>Start price: {{ auction.price_start }}</p>
+                <p>Actual price: {{ auction.current_price }}</p>
+                <p>End date: {{ auction.date }}</p>
+                <p>Status: {{ auction.is_active|yesno:"Active,Finished" }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

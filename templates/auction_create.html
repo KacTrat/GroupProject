@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add auction</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <h1>Add new auction</h1>
+    <form id="auction-form">
+        <div>
+            <label for="book">Book:</label>
+            <input type="text" id="book" name="book" required>
+        </div>
+        <div>
+            <label for="tags">Tags:</label>
+            <input type="text" id="tags" name="tags" required>
+        </div>
+        <div>
+            <label for="date">End date:</label>
+            <input type="datetime-local" id="date" name="date" required>
+        </div>
+        <div>
+            <label for="price_start">Start price:</label>
+            <input type="number" id="price_start" name="price_start" step="0.01" required>
+        </div>
+        <button type="submit">Add auction</button>
+    </form>
+
+    <div id="success-message" style="display: none;">
+        <p>Auction succesfully added</p>
+        <a href="{% url 'auction_list' %}">Come back to auction list</a>
+    </div>
+
+    <script>
+        document.getElementById('auction-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const book = document.getElementById('book').value;
+            const tags = document.getElementById('tags').value.split(',').map(tag => tag.trim());
+            const date = document.getElementById('date').value;
+            const price_start = document.getElementById('price_start').value;
+
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            const response = await fetch('/api/auctions/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                },
+                body: JSON.stringify({
+                    book: book,
+                    tags: tags,
+                    date: date,
+                    price_start: price_start
+                })
+            });
+
+            if (response.ok) {
+                document.getElementById('auction-form').reset();
+                document.getElementById('success-message').style.display = 'block';
+            } else {
+                alert('Wystąpił błąd przy tworzeniu aukcji');
+            }
+        });
+    </script>
+</body>
+</html>

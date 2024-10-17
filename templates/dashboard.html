@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px auto;
+            max-width: 800px;
+            background-color: #f4f1ea; 
+            padding: 20px;
+            color: #2e2e2e; 
+            text-align: center; 
+        }
+
+        header {
+            background-color: #4b5320; 
+            padding: 10px;
+            color: #f9f6f1; 
+            text-align: center;
+        }
+
+        .content {
+            margin-top: 20px;
+        }
+
+        .logout-button {
+            background-color: #8b0000;
+            color: #f9f6f1;
+            border: none;
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-button:hover {
+            background-color: #a50000; 
+        }
+
+        .welcome-message {
+            font-size: 1.5em;
+        }
+
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .action-button {
+            padding: 15px;
+            background-color: #4b5320; 
+            color: #f9f6f1; 
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .action-button:hover {
+            background-color: #3e4720; 
+        }
+
+        #logo {
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body>
+    <img id="logo" src="{% static 'logo.png' %}" alt="Logo" width="150" height="150">
+<header>
+    <h1>User Dashboard</h1>
+</header>
+
+<div class="content">
+    <p class="welcome-message">Welcome, <span id="username"></span>!</p>
+    <button class="logout-button" id="logoutButton">Logout</button>
+
+    <div class="action-buttons">
+        <a href="/add-auction/" class="action-button">Add Auction</a>
+        <a href="/auctions/" class="action-button">View All Auctions</a>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const token = localStorage.getItem('access_token');
+
+        if (!token) {
+            alert('You are not logged in. Redirecting to login page...');
+            window.location.href = '/login/';
+        } else {
+            fetch('http://127.0.0.1:8000/api/dashboard/', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    console.log("Response Status:", response.status);
+                    if (response.status === 401 || response.status === 403) {
+                        throw new Error('Unauthorized. Redirecting to login page...');
+                    }
+                    if (response.status === 404) {
+                        throw new Error('Endpoint not found. Please check the API URL.');
+                    }
+                    if (!response.ok) {
+                        throw new Error(`Unexpected error: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Response Data:", data);
+                    if (data && data.username) {
+                        document.getElementById('username').innerText = data.username;
+                    } else {
+                        throw new Error('Invalid response data. Redirecting to login page...');
+                    }
+                })
+                .catch(error => {
+                    console.error('There has been a problem with your fetch operation:', error.message);
+                    alert('Error fetching user data. Redirecting to login page...');
+                    localStorage.removeItem('access_token');
+                    window.location.href = '/login/';
+                });
+        }
+
+        document.getElementById('logoutButton').addEventListener('click', function () {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            alert('You have been logged out.');
+            window.location.href = '/login/';
+        });
+    });
+</script>
+</body>
+</html>
